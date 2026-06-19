@@ -162,7 +162,7 @@
       (reset! map-ref map))))
 
 (defn- load-landmarks []
-  (go (let [response (<! (http/get "/data/landmarks.json"))]
+  (go (let [response (<! (http/get "data/landmarks.json"))]
         (swap! app-state assoc :landmarks (:body response))
         (refresh-markers))))
 
