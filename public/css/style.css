@@ -252,3 +252,57 @@ header .year-display {
 .leaflet-popup-content b {
   color: #c9a96e;
 }
+
+/* Secret toast */
+.secret-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2a1a3e 0%, #1a1a2e 100%);
+  border: 1px solid #c9a96e;
+  border-radius: 12px;
+  padding: 18px 28px;
+  max-width: 440px;
+  width: 90%;
+  z-index: 2000;
+  cursor: pointer;
+  animation: toast-in 0.5s ease-out;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.secret-toast p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #e8e0d4;
+  margin: 0;
+  padding-right: 24px;
+  font-style: italic;
+}
+
+.secret-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.secret-close:hover {
+  color: #c9a96e;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

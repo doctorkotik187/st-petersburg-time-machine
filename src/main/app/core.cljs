@@ -11,10 +11,12 @@
 (defonce app-state
   (r/atom {:year 2024
            :landmarks []
-           :selected nil}))
+           :selected nil
+           :secret nil}))
 
 (defonce ^:private map-ref (atom nil))
 (defonce ^:private markers-ref (atom {}))
+(defonce ^:private click-counts (atom {}))
 
 (def min-year 1700)
 (def max-year 2024)
@@ -28,6 +30,23 @@
    "theatre"    "#1abc9c"
    "museum"     "#27ae60"})
 
+;; --- Easter eggs (hidden love messages) ---
+;; Triggered by: triple-clicking landmarks, visiting specific years, clicking header
+
+(def secrets
+  {:header-click "Every time you look at this city, remember: somewhere in it, someone is thinking of you."
+   :triple-click "You found a secret. St. Petersburg has 152 bridges, but only one leads to my heart."
+   :year-1812 "1812 — the year Russia defeated Napoleon. The year that proved some things are worth fighting for. Like love."
+   :year-1945 "1945 — Victory Day. The day the world learned that light always wins over darkness. Like you in my life."
+   :year-1991 "1991 — the city got its name back. Some things are too beautiful to stay hidden."
+   :fortress "Peter and Paul Fortress — where the city began. You are where my everything begins."
+   :winter-palace "The Winter Palace survived revolutions. Real love survives everything."
+   :peterhof "Peterhof's fountains flow upward — against nature. Like loving you — against all logic."
+   :marinsky "At the Mariinsky, ballerinas dance on their toes. I dance on my words thinking of you."
+   :bronze-horseman "The Bronze Horseman never moves. But my heart moves every time I see you."
+   :church-blood "Built on a place of tragedy, it became the most beautiful church. Pain can become beauty. You proved that."
+   :isaac "St. Isaac's dome is covered in pure gold. But no gold shines brighter than your eyes."})
+
 ;; --- Helpers ---
 
 (defn- color-style [color]
@@ -35,6 +54,32 @@
        "background:" color ";"
        "border:2px solid rgba(255,255,255,0.8);"
        "box-shadow:0 0 8px " color ";"))
+
+(defn- reveal-secret! [key]
+  (swap! app-state assoc :secret (get secrets key)))
+
+(defn- handle-landmark-click [landmark]
+  (let [id (:id landmark)
+        clicks (swap! click-counts update id (fnil inc 0))]
+    (when (>= clicks 3)
+      (reveal-secret! :triple-click)
+      (swap! click-counts assoc id 0))
+    (case id
+      "peter-paul-fortress" (reveal-secret! :fortress)
+      "winter-palace" (reveal-secret! :winter-palace)
+      "peterhof" (reveal-secret! :peterhof)
+      "mariinsky-theatre" (reveal-secret! :marinsky)
+      "bronze-horseman" (reveal-secret! :bronze-horseman)
+      "church-savior-blood" (reveal-secret! :church-blood)
+      "isaac-cathedral" (reveal-secret! :isaac)
+      nil)))
+
+(defn- handle-year-change [year]
+  (cond
+    (= year 1812) (reveal-secret! :year-1812)
+    (= year 1945) (reveal-secret! :year-1945)
+    (= year 1991) (reveal-secret! :year-1991)
+    :else nil))
 
 ;; --- Map operations ---
 
@@ -54,6 +99,7 @@
                 (str "<b>" (:name landmark) "</b><br>"
                      "Built: " (:yearBuilt landmark))
                 #js {:className "dark-popup"})
+    (.on marker "click" #(handle-landmark-click landmark))
     marker))
 
 (defn- clear-markers []
@@ -106,6 +152,13 @@
 
 ;; --- Components ---
 
+(defn- secret-toast []
+  (when-let [msg (:secret @app-state)]
+    [:div.secret-toast
+     {:on-click #(swap! app-state assoc :secret nil)}
+     [:span.secret-close "x"]
+     [:p msg]]))
+
 (defn- detail-panel []
   (when-let [selected (:selected @app-state)]
     [:div.detail-panel
@@ -139,7 +192,9 @@
          ^{:key (:id l)}
          [:div.landmark-card
           {:class (when (= (:id selected) (:id l)) "selected")
-           :on-click #(swap! app-state assoc :selected l)}
+           :on-click #(do
+                        (handle-landmark-click l)
+                        (swap! app-state assoc :selected l))}
           [:div.name (:name l)]
           [:div.year (str "Built: " (:yearBuilt l))]
           [:div.category (:category l)]]))]))
@@ -160,12 +215,14 @@
               :on-change (fn [e]
                            (let [new-year (js/parseInt (.. e -target -value))]
                              (swap! app-state assoc :year new-year)
+                             (handle-year-change new-year)
                              (refresh-markers)))}]
      [:div.landmark-count
       (str cnt " of " total " landmarks visible")]]))
 
 (defn- header []
   [:header
+   {:on-click #(reveal-secret! :header-click)}
    [:h1 "St. Petersburg Time Machine"]
    [:span.year-display (:year @app-state)]])
 
@@ -178,7 +235,8 @@
                       (load-landmarks))}]
     [sidebar]]
    [timeline]
-   [detail-panel]])
+   [detail-panel]
+   [secret-toast]])
 
 ;; --- Init ---
 
