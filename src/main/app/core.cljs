@@ -12,7 +12,8 @@
   (r/atom {:year 2024
            :landmarks []
            :selected nil
-           :secret nil}))
+           :secret nil
+           :sidebar-open? false}))
 
 (defonce ^:private map-ref (atom nil))
 (defonce ^:private markers-ref (atom {}))
@@ -188,10 +189,15 @@
   (let [landmarks (:landmarks @app-state)
         year (:year @app-state)
         selected (:selected @app-state)
+        sidebar-open? (:sidebar-open? @app-state)
         visible (filter #(<= (:yearBuilt %) year) landmarks)
         sorted (sort-by :yearBuilt visible)]
-    [:div.sidebar
-     [:h2 (str "Места (" (count sorted) ")")]
+    [:div.sidebar {:class (when sidebar-open? "open")}
+     [:div.sidebar-header
+      [:h2 (str "Места (" (count sorted) ")")]
+      [:button.sidebar-close
+       {:on-click #(swap! app-state assoc :sidebar-open? false)}
+       "\u00D7"]]
      (cond
        (empty? landmarks)
        [:div {:style {:color "#666" :font-size "0.9rem" :padding "8px 0"}}
@@ -208,7 +214,8 @@
           {:class (when (= (:id selected) (:id l)) "selected")
            :on-click #(do
                         (handle-landmark-click l)
-                        (swap! app-state assoc :selected l))}
+                        (swap! app-state assoc :selected l)
+                        (swap! app-state assoc :sidebar-open? false))}
           [:div.name (:name l)]
           [:div.year (str "Построено: " (:yearBuilt l))]
           [:div.category (get category-names (:category l))]]))]))
@@ -238,7 +245,11 @@
   [:header
    {:on-click #(reveal-secret! :header-click)}
    [:h1 "Машина времени: Санкт-Петербург"]
-   [:span.year-display (:year @app-state)]])
+   [:div.header-right
+    [:span.year-display (:year @app-state)]
+    [:button.sidebar-toggle
+     {:on-click #(swap! app-state update :sidebar-open? not)}
+     "\u2630"]]])
 
 (defn app []
   [:div.app-wrapper
