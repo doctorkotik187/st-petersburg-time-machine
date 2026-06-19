@@ -9,7 +9,7 @@
 ;; --- State ---
 
 (defonce app-state
-  (r/atom {:year 2024
+  (r/atom {:year 2026
            :landmarks []
            :selected nil
            :secret nil
@@ -20,7 +20,7 @@
 (defonce ^:private click-counts (atom {}))
 
 (def min-year 1700)
-(def max-year 2024)
+(def max-year 2026)
 
 (def category-colors
   {"fortress"   "#e74c3c"
@@ -104,15 +104,15 @@
 (defn- create-marker [landmark]
   (let [color (get category-colors (:category landmark) "#c9a96e")
         ^js icon (.divIcon L
-                  #js {:className "custom-marker-icon"
-                       :html (str "<div style='" (color-style color) "'></div>")
-                       :iconSize #js [12 12]
-                       :iconAnchor #js [6 6]
-                       :popupAnchor #js [0 -8]})
+                           #js {:className "custom-marker-icon"
+                                :html (str "<div style='" (color-style color) "'></div>")
+                                :iconSize #js [12 12]
+                                :iconAnchor #js [6 6]
+                                :popupAnchor #js [0 -8]})
         ^js marker (.marker L
-                    #js [(:lat landmark) (:lon landmark)]
-                    #js {:icon icon
-                         :title (:name landmark)})]
+                            #js [(:lat landmark) (:lon landmark)]
+                            #js {:icon icon
+                                 :title (:name landmark)})]
     (.bindPopup marker
                 (str "<b>" (:name landmark) "</b><br>"
                      "Построено: " (:yearBuilt landmark))
@@ -154,10 +154,10 @@
                              :zoomControl true
                              :attributionControl true})]
       (.addTo (.tileLayer L
-               "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-               #js {:attribution "&copy; OpenStreetMap &copy; CARTO"
-                    :subdomains "abcd"
-                    :maxZoom 19})
+                          "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                          #js {:attribution "&copy; OpenStreetMap &copy; CARTO"
+                               :subdomains "abcd"
+                               :maxZoom 19})
               map)
       (reset! map-ref map))))
 
@@ -222,7 +222,7 @@
 
 (defn- timeline []
   (let [visible (filter #(<= (:yearBuilt %) (:year @app-state))
-                         (:landmarks @app-state))
+                        (:landmarks @app-state))
         cnt (count visible)
         total (count (:landmarks @app-state))]
     [:div.timeline-container

@@ -5,7 +5,7 @@ An interactive map of Saint Petersburg with a timeline slider. Explore the city'
 ## Features
 
 - Interactive map with landmark markers
-- Timeline slider (1700–2024) — filter places by year built
+- Timeline slider (1700–2026) — filter places by year built
 - Russian-language descriptions for each landmark
 
 ## Run
