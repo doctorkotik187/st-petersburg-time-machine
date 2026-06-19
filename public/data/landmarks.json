@@ -1,110 +1,110 @@
 [
   {
     "id": "peter-paul-fortress",
-    "name": "Peter and Paul Fortress",
+    "name": "Петропавловская крепость",
     "lat": 59.9500,
     "lon": 30.3167,
     "yearBuilt": 1703,
-    "description": "The original citadel of St. Petersburg, founded by Peter the Great. The city grew out from this fortress on Zayachy Island.",
+    "description": "Место, где всё началось. С этого острова вырос город, который покорил целый мир. Как и ты — покорила меня с первого взгляда.",
     "category": "fortress"
   },
   {
     "id": "winter-palace",
-    "name": "Winter Palace",
+    "name": "Зимний дворец",
     "lat": 59.9410,
     "lon": 30.3140,
     "yearBuilt": 1732,
-    "description": "The former residence of Russian emperors. Now houses the Hermitage Museum, one of the world's largest art collections.",
+    "description": "Дворец, который пережил всё — революции, войны, эпохи. Стоит до сих пор. Настоящие чувства тоже не боятся бурь.",
     "category": "palace"
   },
   {
     "id": "peterhof",
-    "name": "Peterhof Palace",
+    "name": "Петергоф",
     "lat": 59.8845,
     "lon": 29.9085,
     "yearBuilt": 1714,
-    "description": "Known as the 'Russian Versailles', famous for its grand fountains and gardens along the Gulf of Finland.",
+    "description": "Фонтаны текут вверх — против всех законов физики. Как мои чувства к тебе — против всякой логики.",
     "category": "palace"
   },
   {
     "id": "isaac-cathedral",
-    "name": "St. Isaac's Cathedral",
+    "name": "Исаакиевский собор",
     "lat": 59.9341,
     "lon": 30.3061,
     "yearBuilt": 1818,
-    "description": "The largest Orthodox cathedral in the city, with a massive golden dome visible from across the Neva.",
+    "description": "Золотой купол виден из любой точки города. Как ты — заметна всегда, где бы ни была. Сорок лет строили этот собор. Некоторые вещи стоят того, чтобы ждать.",
     "category": "church"
   },
   {
     "id": "church-savior-blood",
-    "name": "Church of the Savior on Spilled Blood",
+    "name": "Храм Спаса на Крови",
     "lat": 59.9400,
     "lon": 30.3289,
     "yearBuilt": 1883,
-    "description": "Built on the spot where Emperor Alexander II was assassinated. Famous for its colorful onion domes and mosaics.",
+    "description": "Построен на месте трагедии, но стал самым красивым храмом города. Иногда самое прекрасное рождается из боли.",
     "category": "church"
   },
   {
     "id": "kazan-cathedral",
-    "name": "Kazan Cathedral",
+    "name": "Казанский собор",
     "lat": 59.9343,
     "lon": 30.3247,
     "yearBuilt": 1801,
-    "description": "Modeled after St. Peter's Basilica in Rome, its grand colonnade dominates Nevsky Prospect.",
+    "description": "Колоннада обнимает Невский проспект словно распахнутые объятия. Зайди внутрь — и почувствуй покой.",
     "category": "church"
   },
   {
     "id": "admiralty",
-    "name": "Admiralty Building",
+    "name": "Адмиралтейство",
     "lat": 59.9356,
     "lon": 30.3047,
     "yearBuilt": 1704,
-    "description": "The heart of the city's radial street plan. Its golden spire is one of St. Petersburg's most recognizable landmarks.",
+    "description": "Золотой шпиль — компас города. От него расходятся лучи главных проспектов. Ты — мой компас.",
     "category": "government"
   },
   {
     "id": "bronze-horseman",
-    "name": "The Bronze Horseman",
+    "name": "Медный всадник",
     "lat": 59.9364,
     "lon": 30.3022,
     "yearBuilt": 1782,
-    "description": "Equestrian statue of Peter the Great by Étienne Maurice Falconet. One of the city's most iconic symbols.",
+    "description": "Пётр указывает рукой в будущее. Говорят, пока всадник стоит — город будет жить. Пока ты рядом — я по-настоящему живу.",
     "category": "monument"
   },
   {
     "id": "mariinsky-theatre",
-    "name": "Mariinsky Theatre",
+    "name": "Мариинский театр",
     "lat": 59.9254,
     "lon": 30.2967,
     "yearBuilt": 1860,
-    "description": "One of the most famous opera and ballet theatres in the world, home to the Mariinsky Ballet.",
+    "description": "Здесь танцуют так, что забываешь дышать. Каждый спектакль — маленькая история любви. Место, где искусство становится чувством.",
     "category": "theatre"
   },
   {
     "id": "russian-museum",
-    "name": "Russian Museum",
+    "name": "Русский музей",
     "lat": 59.9386,
     "lon": 30.3323,
     "yearBuilt": 1895,
-    "description": "The first state museum of fine arts in Russia, housing the world's largest collection of Russian art.",
+    "description": "Здесь хранятся души русских художников. Каждая картина — признание в любви к красоте.",
     "category": "museum"
   },
   {
     "id": "trinity-cathedral",
-    "name": "Trinity Cathedral",
+    "name": "Троицкий собор",
     "lat": 59.9250,
     "lon": 30.3267,
     "yearBuilt": 1828,
-    "description": "A masterpiece of Neoclassical architecture, once the main church of the Izmailovsky Regiment.",
+    "description": "Белые колонны хранят тишину. Некоторые места созданы для того, чтобы остановиться и подумать о главном.",
     "category": "church"
   },
   {
     "id": "general-staff",
-    "name": "General Staff Building",
+    "name": "Здание Главного штаба",
     "lat": 59.9386,
     "lon": 30.3156,
     "yearBuilt": 1829,
-    "description": "Its grand arch on Palace Square frames the view down Nevsky Prospect toward the Admiralty.",
+    "description": "Триумфальная арка открывает вид на весь Невский. Каждый раз, проходя под ней, чувствуешь себя героем романа.",
     "category": "government"
   }
 ]

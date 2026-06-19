@@ -30,22 +30,34 @@
    "theatre"    "#1abc9c"
    "museum"     "#27ae60"})
 
-;; --- Easter eggs (hidden love messages) ---
-;; Triggered by: triple-clicking landmarks, visiting specific years, clicking header
+(def category-names
+  {"fortress"   "Крепость"
+   "palace"     "Дворец"
+   "church"     "Храм"
+   "government" "Здание"
+   "monument"   "Памятник"
+   "theatre"    "Театр"
+   "museum"     "Музей"})
 
+;; --- Easter eggs ---
 (def secrets
-  {:header-click "Every time you look at this city, remember: somewhere in it, someone is thinking of you."
-   :triple-click "You found a secret. St. Petersburg has 152 bridges, but only one leads to my heart."
-   :year-1812 "1812 — the year Russia defeated Napoleon. The year that proved some things are worth fighting for. Like love."
-   :year-1945 "1945 — Victory Day. The day the world learned that light always wins over darkness. Like you in my life."
-   :year-1991 "1991 — the city got its name back. Some things are too beautiful to stay hidden."
-   :fortress "Peter and Paul Fortress — where the city began. You are where my everything begins."
-   :winter-palace "The Winter Palace survived revolutions. Real love survives everything."
-   :peterhof "Peterhof's fountains flow upward — against nature. Like loving you — against all logic."
-   :marinsky "At the Mariinsky, ballerinas dance on their toes. I dance on my words thinking of you."
-   :bronze-horseman "The Bronze Horseman never moves. But my heart moves every time I see you."
-   :church-blood "Built on a place of tragedy, it became the most beautiful church. Pain can become beauty. You proved that."
-   :isaac "St. Isaac's dome is covered in pure gold. But no gold shines brighter than your eyes."})
+  {:header-click "Каждый раз, когда смотришь на этот город, помни: где-то в нём кто-то думает о тебе."
+   :triple-click "Ты нашла секрет. В Петербурге 152 моста, но только один ведёт к моему сердцу."
+   :year-1812 "1812 — год, когда Россия победила Наполеона. Год, доказавший: некоторые вещи стоят того, чтобы за них сражаться. Например, любовь."
+   :year-1945 "1945 — День Победы. День, когда мир узнал: свет всегда побеждает тьму. Как ты в моей жизни."
+   :year-1991 "1991 — город вернул своё имя. Некоторые вещи слишком прекрасны, чтобы их скрывать."
+   :fortress "Петропавловская крепость — здесь родился город. Ты — то, от чего у меня замирает сердце."
+   :winter-palace "Зимний дворец пережил революции. Настоящие чувства переживают всё."
+   :peterhof "Фонтаны Петергофа текут вверх — против природы. Как любовь к тебе — против логики."
+   :marinsky "В Мариинском балерины танцуют на кончиках пальцев. А я хожу по краю, думая о тебе."
+   :bronze-horseman "Медный всадник никогда не двигается. Но моё сердце — каждый раз, когда я думаю о тебе."
+   :church-blood "Построен на месте трагедии — стал самым красивым храмом. Боль может стать красотой. Ты это доказала."
+   :isaac "Купол Исаакия покрыт чистым золотом. Но ничто не сияет ярче твоей улыбки."
+   :admiralty "Золотой шпиль Адмиралтейства — компас города. Ты — мой компас."
+   :kazan "Казанский собор обнимает Невский своей колоннадой. Как хочется обнять тебя."
+   :trinity "Троицкий собор хранит тишину. В этой тишине можно услышать, как бьётся сердце."
+   :general-staff "Через арку Главного штаба виден весь Невский. С тобой видно весь мир."
+   :russian-museum "В Русском музее — души художников. В моём сердце — только ты."})
 
 ;; --- Helpers ---
 
@@ -72,6 +84,11 @@
       "bronze-horseman" (reveal-secret! :bronze-horseman)
       "church-savior-blood" (reveal-secret! :church-blood)
       "isaac-cathedral" (reveal-secret! :isaac)
+      "admiralty" (reveal-secret! :admiralty)
+      "kazan-cathedral" (reveal-secret! :kazan)
+      "trinity-cathedral" (reveal-secret! :trinity)
+      "general-staff" (reveal-secret! :general-staff)
+      "russian-museum" (reveal-secret! :russian-museum)
       nil)))
 
 (defn- handle-year-change [year]
@@ -97,7 +114,7 @@
                          :title (:name landmark)})]
     (.bindPopup marker
                 (str "<b>" (:name landmark) "</b><br>"
-                     "Built: " (:yearBuilt landmark))
+                     "Построено: " (:yearBuilt landmark))
                 #js {:className "dark-popup"})
     (.on marker "click" #(handle-landmark-click landmark))
     marker))
@@ -141,13 +158,11 @@
                     :subdomains "abcd"
                     :maxZoom 19})
               map)
-      (reset! map-ref map)
-      (js/console.log "Map initialized"))))
+      (reset! map-ref map))))
 
 (defn- load-landmarks []
   (go (let [response (<! (http/get "/data/landmarks.json"))]
         (swap! app-state assoc :landmarks (:body response))
-        (js/console.log "Loaded" (count (:body response)) "landmarks")
         (refresh-markers))))
 
 ;; --- Components ---
@@ -166,8 +181,7 @@
       {:on-click #(swap! app-state assoc :selected nil)}
       "\u00D7"]
      [:h3 (:name selected)]
-     [:div.detail-year
-      "Built in " (:yearBuilt selected)]
+     [:div.detail-year (str "Построено в " (:yearBuilt selected) " году")]
      [:div.detail-desc (:description selected)]]))
 
 (defn- sidebar []
@@ -177,15 +191,15 @@
         visible (filter #(<= (:yearBuilt %) year) landmarks)
         sorted (sort-by :yearBuilt visible)]
     [:div.sidebar
-     [:h2 (str "Landmarks (" (count sorted) ")")]
+     [:h2 (str "Места (" (count sorted) ")")]
      (cond
        (empty? landmarks)
-       [:div {:style {:color "#666" :font-size "0.85rem" :padding "8px 0"}}
-        "Loading..."]
+       [:div {:style {:color "#666" :font-size "0.9rem" :padding "8px 0"}}
+        "Загружаем..."]
 
        (empty? sorted)
-       [:div {:style {:color "#666" :font-size "0.85rem" :padding "8px 0"}}
-        "No landmarks for this year yet."]
+       [:div {:style {:color "#666" :font-size "0.9rem" :padding "8px 0"}}
+        "В этот год ещё ничего не построили."]
 
        :else
        (for [l sorted]
@@ -196,8 +210,8 @@
                         (handle-landmark-click l)
                         (swap! app-state assoc :selected l))}
           [:div.name (:name l)]
-          [:div.year (str "Built: " (:yearBuilt l))]
-          [:div.category (:category l)]]))]))
+          [:div.year (str "Построено: " (:yearBuilt l))]
+          [:div.category (get category-names (:category l))]]))]))
 
 (defn- timeline []
   (let [visible (filter #(<= (:yearBuilt %) (:year @app-state))
@@ -218,12 +232,12 @@
                              (handle-year-change new-year)
                              (refresh-markers)))}]
      [:div.landmark-count
-      (str cnt " of " total " landmarks visible")]]))
+      (str cnt " из " total " мест видно")]]))
 
 (defn- header []
   [:header
    {:on-click #(reveal-secret! :header-click)}
-   [:h1 "St. Petersburg Time Machine"]
+   [:h1 "Машина времени: Санкт-Петербург"]
    [:span.year-display (:year @app-state)]])
 
 (defn app []
