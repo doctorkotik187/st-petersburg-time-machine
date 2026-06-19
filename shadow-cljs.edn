@@ -1,11 +1,22 @@
-;; shadow-cljs configuration
 {:source-paths
  ["src/dev"
   "src/main"
   "src/test"]
 
+ :npm-deps
+ {"leaflet" "1.9.4"
+  "react" "18.2.0"
+  "react-dom" "18.2.0"}
+
  :dependencies
- []
+ [[reagent "1.2.0"]
+  [cljs-http "0.1.46"]]
 
  :builds
- {}}
+ {:app
+  {:target :browser
+   :output-dir "public/js"
+   :asset-path "/js"
+   :modules {:main {:init-fn app.core/init}}
+   :devtools {:http-root "public"
+              :http-port 8080}}}}
