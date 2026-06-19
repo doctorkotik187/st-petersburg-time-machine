@@ -11,9 +11,10 @@
 (defonce app-state
   (r/atom {:year 2024
            :landmarks []
-           :selected nil
-           :map nil
-           :markers {}}))
+           :selected nil}))
+
+(defonce ^:private map-ref (atom nil))
+(defonce ^:private markers-ref (atom {}))
 
 (def min-year 1700)
 (def max-year 2024)
@@ -27,72 +28,87 @@
    "theatre"    "#1abc9c"
    "museum"     "#27ae60"})
 
-;; --- Data ---
+;; --- Helpers ---
 
-(defn load-landmarks []
-  (go (let [response (<! (http/get "/data/landmarks.json"))]
-        (swap! app-state assoc :landmarks (:body response)))))
+(defn- color-style [color]
+  (str "display:inline-block;width:12px;height:12px;border-radius:50%;"
+       "background:" color ";"
+       "border:2px solid rgba(255,255,255,0.8);"
+       "box-shadow:0 0 8px " color ";"))
 
-;; --- Map ---
+;; --- Map operations ---
 
-(defn create-marker [landmark]
+(defn- create-marker [landmark]
   (let [color (get category-colors (:category landmark) "#c9a96e")
         ^js icon (.divIcon L
-                  #js {:className "custom-marker"
-                       :html (str "<div style='width:14px;height:14px;border-radius:50%;"
-                                  "background:" color ";"
-                                  "border:2px solid rgba(255,255,255,0.7);"
-                                  "box-shadow:0 0 6px " color ";'></div>")
-                       :iconSize #js [14 14]
-                       :iconAnchor #js [7 7]})
+                  #js {:className "custom-marker-icon"
+                       :html (str "<div style='" (color-style color) "'></div>")
+                       :iconSize #js [12 12]
+                       :iconAnchor #js [6 6]
+                       :popupAnchor #js [0 -8]})
         ^js marker (.marker L
                     #js [(:lat landmark) (:lon landmark)]
                     #js {:icon icon
                          :title (:name landmark)})]
     (.bindPopup marker
                 (str "<b>" (:name landmark) "</b><br>"
-                     "Built: " (:yearBuilt landmark)))
-    (.on marker "click"
-         #(swap! app-state assoc :selected landmark))
+                     "Built: " (:yearBuilt landmark))
+                #js {:className "dark-popup"})
     marker))
 
-(defn update-markers! []
-  (let [{:keys [map markers landmarks year]} @app-state]
-    (when (and map (seq landmarks))
-      ;; Remove old markers
-      (doseq [[_ ^js marker] markers]
-        (.removeLayer map marker))
-      ;; Create new markers for visible landmarks
-      (let [visible (filter #(<= (:yearBuilt %) year) landmarks)
-            new-markers (persistent!
-                         (reduce (fn [acc l]
-                                   (assoc! acc (:id l) (create-marker l)))
-                                 (transient {})
-                                 visible))]
-        ;; Add to map
-        (doseq [[_ ^js m] new-markers]
-          (.addTo m map))
-        (swap! app-state assoc :markers new-markers)))))
+(defn- clear-markers []
+  (when-let [^js map @map-ref]
+    (doseq [[_ ^js marker] @markers-ref]
+      (when marker
+        (.removeLayer map marker))))
+  (reset! markers-ref {}))
 
-(defn init-map []
-  (let [^js map (.map L "map"
-                      #js {:center #js [59.9343 30.3351]
-                           :zoom 12
-                           :zoomControl true
-                           :attributionControl true})]
-    (.addTo (.tileLayer L
-             "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-             #js {:attribution "&copy; OpenStreetMap &copy; CARTO"
-                  :subdomains "abcd"
-                  :maxZoom 19})
-            map)
-    map))
+(defn- place-markers [landmarks year]
+  (when-let [^js map @map-ref]
+    (let [visible (filter #(<= (:yearBuilt %) year) landmarks)
+          new-markers (loop [vs (seq visible)
+                             acc {}]
+                        (if vs
+                          (let [l (first vs)
+                                ^js m (create-marker l)]
+                            (.addTo m map)
+                            (recur (next vs) (assoc acc (:id l) m)))
+                          acc))]
+      (reset! markers-ref new-markers))))
+
+(defn- refresh-markers []
+  (clear-markers)
+  (let [{:keys [landmarks year]} @app-state]
+    (when (seq landmarks)
+      (place-markers landmarks year))))
+
+(defn- ensure-map! [el]
+  (when (and el (nil? @map-ref))
+    (let [^js map (.map L el
+                        #js {:center #js [59.9343 30.3351]
+                             :zoom 12
+                             :zoomControl true
+                             :attributionControl true})]
+      (.addTo (.tileLayer L
+               "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+               #js {:attribution "&copy; OpenStreetMap &copy; CARTO"
+                    :subdomains "abcd"
+                    :maxZoom 19})
+              map)
+      (reset! map-ref map)
+      (js/console.log "Map initialized"))))
+
+(defn- load-landmarks []
+  (go (let [response (<! (http/get "/data/landmarks.json"))]
+        (swap! app-state assoc :landmarks (:body response))
+        (js/console.log "Loaded" (count (:body response)) "landmarks")
+        (refresh-markers))))
 
 ;; --- Components ---
 
-(defn detail-panel []
+(defn- detail-panel []
   (when-let [selected (:selected @app-state)]
-    [:div.detail-panel.visible
+    [:div.detail-panel
      [:button.close-btn
       {:on-click #(swap! app-state assoc :selected nil)}
       "\u00D7"]
@@ -101,14 +117,14 @@
       "Built in " (:yearBuilt selected)]
      [:div.detail-desc (:description selected)]]))
 
-(defn sidebar []
+(defn- sidebar []
   (let [landmarks (:landmarks @app-state)
         year (:year @app-state)
         selected (:selected @app-state)
         visible (filter #(<= (:yearBuilt %) year) landmarks)
         sorted (sort-by :yearBuilt visible)]
     [:div.sidebar
-     [:h2 "Landmarks"]
+     [:h2 (str "Landmarks (" (count sorted) ")")]
      (cond
        (empty? landmarks)
        [:div {:style {:color "#666" :font-size "0.85rem" :padding "8px 0"}}
@@ -116,7 +132,7 @@
 
        (empty? sorted)
        [:div {:style {:color "#666" :font-size "0.85rem" :padding "8px 0"}}
-        "No landmarks built yet. Drag the timeline forward."]
+        "No landmarks for this year yet."]
 
        :else
        (for [l sorted]
@@ -125,10 +141,10 @@
           {:class (when (= (:id selected) (:id l)) "selected")
            :on-click #(swap! app-state assoc :selected l)}
           [:div.name (:name l)]
-          [:div.year "Built: " (:yearBuilt l)]
+          [:div.year (str "Built: " (:yearBuilt l))]
           [:div.category (:category l)]]))]))
 
-(defn timeline []
+(defn- timeline []
   (let [visible (filter #(<= (:yearBuilt %) (:year @app-state))
                          (:landmarks @app-state))
         cnt (count visible)
@@ -144,39 +160,25 @@
               :on-change (fn [e]
                            (let [new-year (js/parseInt (.. e -target -value))]
                              (swap! app-state assoc :year new-year)
-                             (update-markers!)))}]
+                             (refresh-markers)))}]
      [:div.landmark-count
-      cnt " of " total " landmarks visible"]]))
+      (str cnt " of " total " landmarks visible")]]))
 
-(defn header []
+(defn- header []
   [:header
    [:h1 "St. Petersburg Time Machine"]
    [:span.year-display (:year @app-state)]])
 
 (defn app []
-  (r/create-class
-   {:component-did-mount
-    (fn [_]
-      (let [map (init-map)]
-        (swap! app-state assoc :map map)
-        (load-landmarks)
-        ;; Watch for landmarks loading, then place markers
-        (add-watch app-state :init-markers
-                   (fn [_ _ _ new-state]
-                     (when (and (:map new-state)
-                                (seq (:landmarks new-state)))
-                       (update-markers!)
-                       (remove-watch app-state :init-markers))))))
-
-    :reagent-render
-    (fn []
-      [:div.app-wrapper
-       [header]
-       [:div.main-content
-        [:div#map]
-        [sidebar]]
-       [timeline]
-       [detail-panel]])}))
+  [:div.app-wrapper
+   [header]
+   [:div.main-content
+    [:div#map {:ref (fn [el]
+                      (ensure-map! el)
+                      (load-landmarks))}]
+    [sidebar]]
+   [timeline]
+   [detail-panel]])
 
 ;; --- Init ---
 
